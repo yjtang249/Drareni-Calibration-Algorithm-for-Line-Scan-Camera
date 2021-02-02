@@ -1,0 +1,9 @@
+        coord in image plane（pixel）      coord in world plane（mm）
+testPoint1:      (364.0,300.0)                   (34.0,21.5)
+testPoint2       (720.0,284.0)                 (147.0,22.5)
+testPoint3:      (481.0,357.0)                  (71.0,42.0)
+testPoint4:      (683.0,321.0)                  (135.0,33.5)
+testPoint5:      (543.0,478.0)                  (89.0,80.5)
+testPoint6:      (1008.0,554.0)                 (227.5,109.5)
+testPoint7:      (581.0,629.0)                  (99.5,126.5)
+testPoint8:      (326.0735.0,)                  (21.0,152.5)
