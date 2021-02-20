@@ -40,6 +40,51 @@ vector<string> string_split(const string& str, const string& delim)
 }
 
 
+/*
+ * func: 传入一个文件的路径（绝对路径或相对路径），提取出该文件的文件名（即路径中的最后一部分）
+ * args:
+ *      filePath: 传入文件的路径；
+ * return:
+ *      该文件的文件名。
+ * */
+string extract_fileName_from_path(const string& filePath)
+{
+    vector<string> splitted_str = string_split(filePath, "/");
+    int substring_num = splitted_str.size();
+    return splitted_str[substring_num-1];  //提取出用"/"分割 文件路径字符串 的最后一个子串
+}
+
+
+/*
+ * func: 给定若干个2D点，和一个3X3的单转换矩阵，返回这组2D点转换后的点坐标
+ * args:
+ *     srcPts: （源平面上）待转换的若干个2D点的坐标；
+ * return:
+ *      转换后的目标平面上的2D点的坐标。
+ * */
+vector<Point2f> transform_homography(const vector<Point2f>& srcPts, const Mat& H)
+{
+    int ptsNum = srcPts.size();
+    vector<Point2f> srcPts_proj;
+    srcPts_proj.reserve(ptsNum);  //因为容器的大小是固定的，因此在往里添加元素之前，可以先预留好空间（避免不必要的重新分配）
+    Mat X = Mat(3, ptsNum, CV_64FC1, Scalar::all(1) );
+
+    for(int i=0; i<ptsNum; i++)
+    {
+        X.at<double>(0,i) = srcPts[i].x;
+        X.at<double>(1,i) = srcPts[i].y;
+    }
+
+    Mat X_proj = H*X;
+    for(int i=0; i<ptsNum; i++)
+    {
+        srcPts_proj.emplace_back( Point2f( X_proj.at<double>(0,i)/X_proj.at<double>(2,i), X_proj.at<double>(1,i)/X_proj.at<double>(2,i) ) );
+    }
+
+    return srcPts_proj;
+}
+
+
 /**
  * func:角点检测(包括亚像素精确化)
  * args:
@@ -48,21 +93,22 @@ vector<string> string_split(const string& str, const string& delim)
  *      cornerPoints_seq: 检测到的角点；
  *      draw: 表示检测完之后是否绘制带角点的图像；
  *      save: 表示检测完之后是否把识别出的角点坐标保存到文件；
+ *      imgSave: 表示是否将绘制的带角点的图像输出，只有当draw为1且该参数为1时才有效（输出到./img/result/路径下，输出图像的名字为 withCorners_xxx，其中xxx为原图像名）
  * return:
  *      none.
  */
-void cornerPointsDetect(vector<string>& imgNameList, const Size& board_size, vector<vector<Point2f>>& cornerPoints_seq, int draw, int save)
+void cornerPointsDetect(vector<string>& imgNameList, const Size& board_size, vector<vector<Point2f>>& cornerPoints_seq, int draw=1, int save=1, int imgSave=1)
 {
     int imgNum = imgNameList.size();  //待提取图像的数量
     vector<Point2f> cornerPoints;  //缓存每幅图像上检测到的角点
     for(int i =0; i<imgNum; i++)
     {
         Mat imageInput = imread(imgNameList[i]);  //当前处理的图像
-        Mat imageGray;
+        Mat imageGray;  //如果相机本来成的就是灰度图，那这个就不需要了，不用再额外进行RGB转灰度图的步骤
         cout << "imageInput.channels()=" << imageInput.channels() <<endl;
 
         cvtColor(imageInput, imageGray, COLOR_RGB2GRAY);  //把原图转换成灰度图（方便进行亚像素精确化）
-        int fineded = findChessboardCorners(imageGray, board_size, cornerPoints);
+        int fineded = findChessboardCorners(imageGray, board_size, cornerPoints, CALIB_CB_ADAPTIVE_THRESH+CALIB_CB_NORMALIZE_IMAGE+CALIB_CB_FILTER_QUADS );
         if(fineded == 0 )
         {
             cout<<"第"<<i+1<<"张图像角点提取失败！"<<endl;
@@ -71,9 +117,10 @@ void cornerPointsDetect(vector<string>& imgNameList, const Size& board_size, vec
         }
         else
         {
+      //说明：由于cornerSubPix()函数必须传入Point2f的vector，而我为了后面计算的精度决定用Point2f，所以老子不做亚像素精确化了！！！
             //1.2 亚像素精确化: cornerSubPix()，该函数的作用是更加精确地修正角点的位置，是基于位置的修正，所以输入图像应为单通道
             // refinijng之后的角点坐标还是储存在第二个参数( vector<Point2f> ) 中
-            cv::cornerSubPix(imageGray, cornerPoints, Size(11,11),
+            cv::cornerSubPix(imageGray, cornerPoints, Size(5,5),
                              Size(-1,-1),
                              cv::TermCriteria(TermCriteria::EPS+TermCriteria::COUNT,20, 0.01 ));
 
@@ -85,6 +132,11 @@ void cornerPointsDetect(vector<string>& imgNameList, const Size& board_size, vec
                 cout << "绘制第" << to_string(i + 1) << "张图片（带角点）:" << endl;
                 cv::drawChessboardCorners(imageInput, board_size, cornerPoints, true);
                 imshow("image " + to_string(i) + " with detected corner points", imageInput);
+                if(imgSave != 0)
+                {
+                    string origin_imgName = extract_fileName_from_path(imgNameList[i]);
+                    imwrite("./img/result/withCorners_"+origin_imgName, imageInput);
+                }
                 while ((char) waitKey(0) != 27);
             }
 
@@ -177,8 +229,8 @@ void cameraCalibration( vector<string>& imgNameList, const Size& board_size, con
     imgSize.width = imageInput.cols;
     cout<< "imgSize.width = "<<imgSize.width<<", imgSize.height = "<<imgSize.height<<endl;  //把宽高输出一下
 
-    //倒数第2个参数为1，表示在图像上绘制检测到的角点；最后1个参数为1，表示将每幅图像上检测到的角点坐标保存到.txt文件中
-    cornerPointsDetect(imgNameList, board_size, cornerPoints_seq, 1, 1);
+    //倒数第3个参数为1，表示在图像上绘制检测到的角点；倒数第2个参数为1，表示将每幅图像上检测到的角点坐标保存到.txt文件中
+    cornerPointsDetect(imgNameList, board_size, cornerPoints_seq, 1, 1, 1);
 
 
     //step 2. 求相机内参（外参也求出来了）
@@ -318,7 +370,7 @@ Mat computeHomography_2d(const string& img_src, const string& img_trgt, const Si
     //1.角点检测
     vector<vector<Point2f>> cornerpoints_seq;
     cout<< "*******开始角点检测。*********"<<endl;
-    cornerPointsDetect(img_List, board_size, cornerpoints_seq, 0, 0);
+    cornerPointsDetect(img_List, board_size, cornerpoints_seq, 0, 0, 0);
     vector<Point2f> src_points = cornerpoints_seq[0];
     vector<Point2f> trgt_points = cornerpoints_seq[1];
 
@@ -357,14 +409,14 @@ Mat computeHomography_2d(const string& img_src, const string& img_trgt, const Si
  * func:给定源图像和目标图像中的若干组点对应坐标，求得从 源图像坐标 转换到 目标图像坐标 的单应矩阵(2D->2D)。
  *      同时打印出这些点对应中一共有多少组inliers,多少组outliers，并把源图像和目标图像中inlier的坐标分别返回；
  * args:
- *     src_points: 源图像中场景点的坐标；
- *     trgt_points: 目标图像中场景点的坐标；
+ *     src_points: 源图像中场景点的坐标（2D点坐标）；
+ *     trgt_points: 目标图像中场景点的坐标（2D点坐标）；
  *     board_size: （源和目标）图像上每行和每列的角点个数
  *     mask: 一个(N x 1)的矩阵，表示每组点对应是inlier(值!=0)还是outlier(值==0)（输出参数）；
  *     src_points_inliers: 源图像中属于inlier的场景点（输出参数）；
  *     trgt_points_inliers: 目标图像中属于inlier的场景点（输出参数）；
  * return:
- *     从源图像坐标到目标图像坐标单应矩阵。
+ *     从源图像坐标到目标图像坐标单应矩阵(3x3)
  * */
 Mat computeHomography2_2d(const vector<Point2f>& src_points, const vector<Point2f>& trgt_points,
         const Size& board_size, Mat& mask, vector<Point2f>& src_points_inliers, vector<Point2f>& trgt_points_inliers )
@@ -463,18 +515,19 @@ double symmetricTransfer_error(vector<Point2f>& src_points, vector<Point2f>& trg
  * func: 给定一张图片和一组点坐标，在该图片上用圆圈绘制这些点，并显示(按esc键退出)
  * args:
  *     imgName: 图片名；
- *     points: 要绘制的点坐标；
+ *     points: 要绘制的点坐标（一组点）；
  *     color: 画的圈圈的颜色；
  *     windowName: 显示图片时窗口的名字；
  * return:
  *     none.
  */
-void drawCircleOnImage(const string& imgName, const vector<Point2f>& points, const Scalar& color, const string& windowName)
+void drawCircleOnImage(const string& imgName, const vector<Point2f>& points, const Scalar& color, const string& windowName,
+                      int radius=10, int thickness=5)
 {
     Mat img = imread(imgName);
     int pts_num = points.size();
     for(int i=0; i<pts_num; i++)
-        circle(img, points[i], 10, color, 5);
+        circle(img, points[i], radius, color, thickness);
     imshow(windowName, img);
     while ((char) waitKey(0) != 27);
 }
@@ -507,36 +560,36 @@ void normalize_for_DLT(const vector<Point2f>& src_pts, vector<Point2f>& trgt_pts
     int pts_num = src_pts.size();  //场景点的数量
 
     //1. 求中心点的x和y坐标
-    float sum_x = 0.0;
-    float sum_y = 0.0;
+    double sum_x = 0.0;
+    double sum_y = 0.0;
     for(int i=0; i<pts_num; i++)
     {
         sum_x += src_pts[i].x;
         sum_y += src_pts[i].y;
     }
-    auto cx = float( sum_x/pts_num );
-    auto cy = float( sum_y/pts_num );
+    auto cx = double( sum_x/pts_num );
+    auto cy = double( sum_y/pts_num );
     Point2f centroid = Point2f (cx, cy);
 
     //2.求得每个点到中心点的平均距离
-    float d_sum = 0.0;
+    double d_sum = 0.0;
     for(int i=0; i<pts_num; i++)
     {
         d_sum += euclid_distanc(centroid, src_pts[i]);
     }
-    float d_mean = d_sum/pts_num;  //平均欧式距离
-    float s = pow(2,0.5)/d_mean;
+    double d_mean = d_sum/pts_num;  //平均欧式距离
+    double s = pow(2,0.5)/d_mean;
 
     //3.构建Transform矩阵T
-    T = (Mat_<float>(3,3) << s, 0.0, (-1)*s*cx, 0.0 ,s, (-1)*s*cy, 0.0, 0.0, 1.0);
+    T = (Mat_<double>(3,3) << s, 0.0, (-1)*s*cx, 0.0 ,s, (-1)*s*cy, 0.0, 0.0, 1.0);
 //    cout<<"In function normalize_for_DLT(): T="<<endl<<T<<endl;  //测试输出用
 
     //4.用Transform对source点进行转换，得到转换之后的点坐标
     for(int i =0; i<pts_num; i++)
     {
         Point2f srcPoint = src_pts[i];
-        Mat x_head = T*( Mat_<float>(3,1)<< srcPoint.x, srcPoint.y, 1.0);  //把source点变为齐次坐标，再进行转换，shape:3X1
-        Point2f pt_x_head = Point2f( x_head.at<float>(0,0)/x_head.at<float>(2,0), x_head.at<float>(1,0)/x_head.at<float>(2,0) );
+        Mat x_head = T*( Mat_<double>(3,1)<< srcPoint.x, srcPoint.y, 1.0);  //把source点变为齐次坐标，再进行转换，shape:3X1
+        Point2f pt_x_head = Point2f( x_head.at<double>(0,0)/x_head.at<double>(2,0), x_head.at<double>(1,0)/x_head.at<double>(2,0) );
         trgt_pts.push_back(pt_x_head);
     }
 
@@ -550,7 +603,7 @@ void normalize_for_DLT(const vector<Point2f>& src_pts, vector<Point2f>& trgt_pts
  *      imagePoints: 场景点在图像坐标系中的坐标；
  *      (注：该算法要求至少要传入6组点对应！)
  *      T_img: 图像平面坐标系中的点的normalize矩阵：xi' = T1·xi（输出参数）；
- *      T_wrld: 世界平面坐标系中的点的normalize矩阵：yi' = T2·yi（输出参数）；
+ *      T_wrld: 世界平面坐标系中的点的normalize矩阵：ai' = T2·ai（输出参数）；
  * return:
  *      H: 从 升维世界坐标系(normalized坐标) 到 图像坐标系(normalizaed坐标) 的转化矩阵（3X6的）。
 // */
@@ -581,16 +634,16 @@ Mat Drareni_computeHomography(const vector<Point2f>& worldPoints, const vector<P
     for(int i=0; i<pointNum; i++)
     {
         Point2f p_wrld = worldPoints_norm[i];
-        float a = p_wrld.x;
-        float b = p_wrld.y;
+        double a = p_wrld.x;
+        double b = p_wrld.y;
 
         Point2f p_img = imagePoints_norm[i];
-        float u = p_img.x;
-        float v = p_img.y;
+        double u = p_img.x;
+        double v = p_img.y;
 
         //每一组点对应提供2个线性无关的方程
-        Mat row1=(Mat_<float>(1,12)<<0.0, 0.0, 0.0, a, b, 1.0, a*a, b*b, a*b, (-1.0)*a*v, (-1.0)*b*v, (-1.0)*v );
-        Mat row2=(Mat_<float>(1,12)<<a, b, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, (-1.0)*a*u, (-1.0)*b*u, (-1.0)*u );
+        Mat row1=(Mat_<double>(1,12)<<0.0, 0.0, 0.0, a, b, 1.0, a*a, b*b, a*b, (-1.0)*a*v, (-1.0)*b*v, (-1.0)*v );
+        Mat row2=(Mat_<double>(1,12)<<a, b, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, (-1.0)*a*u, (-1.0)*b*u, (-1.0)*u );
         A.push_back(row1);
         A.push_back(row2);
     }
@@ -599,8 +652,8 @@ Mat Drareni_computeHomography(const vector<Point2f>& worldPoints, const vector<P
     //法1：奇异值分解（h的 模为1的最小二乘解 就是 最小奇异值对应的右奇异向量）
     Mat U, D, V_T;
     SVD::compute(A, D, U, V_T);  //待求的h的最优解就是V_T的最后一行
-    auto* h_ptr = V_T.ptr<float>(V_T.rows-1); //指向V_T最后一行的行指针(shape: 1X12)
-    H = (Mat_<float>(3,6)<<h_ptr[0], h_ptr[1], h_ptr[2], 0.0, 0.0, 0.0,
+    auto* h_ptr = V_T.ptr<double>(V_T.rows-1); //指向V_T最后一行的行指针(shape: 1X12)
+    H = (Mat_<double>(3,6)<<h_ptr[0], h_ptr[1], h_ptr[2], 0.0, 0.0, 0.0,
                                         h_ptr[3], h_ptr[4], h_ptr[5], h_ptr[6], h_ptr[7], h_ptr[8],
                                         h_ptr[9], h_ptr[10],h_ptr[11], 0.0, 0.0, 0.0);  //把h从向量形式转换成矩阵形式
 
@@ -616,11 +669,11 @@ Mat Drareni_computeHomography(const vector<Point2f>& worldPoints, const vector<P
     {
         out1<<imagePoints_norm[i].x<<", "<<imagePoints_norm[i].y<<endl;
 
-        float a_tst = worldPoints_norm[i].x;
-        float b_tst = worldPoints_norm[i].y;
-        Mat X = ( Mat_<float>(6,1)<<a_tst, b_tst, 1.0, a_tst*a_tst, b_tst*b_tst, a_tst*b_tst );
+        double a_tst = worldPoints_norm[i].x;
+        double b_tst = worldPoints_norm[i].y;
+        Mat X = ( Mat_<double>(6,1)<<a_tst, b_tst, 1.0, a_tst*a_tst, b_tst*b_tst, a_tst*b_tst );
         Mat X_prm = H*X;
-        out2<< X_prm.at<float>(0,0)/X_prm.at<float>(2,0)<<", "<<X_prm.at<float>(1,0)/X_prm.at<float>(2,0)<<endl;
+        out2<< X_prm.at<double>(0,0)/X_prm.at<double>(2,0)<<", "<<X_prm.at<double>(1,0)/X_prm.at<double>(2,0)<<endl;
     }
     out1.close();
     out2.close();
@@ -638,22 +691,22 @@ Mat Drareni_computeHomography(const vector<Point2f>& worldPoints, const vector<P
     {
         out3<< worldPoints_norm[i].x<<", "<<worldPoints_norm[i].y<<endl;
 
-        float u_tst = imagePoints_norm[i].x;
-        float v_tst = imagePoints_norm[i].y;  //注：这里的u_tst和v_tst都是normalized形式
-        float h11=H.at<float>(0,0), h12=H.at<float>(0,1), h13=H.at<float>(0,2),
-                h21=H.at<float>(1,0), h22=H.at<float>(1,1), h23=H.at<float>(1,2),
-                h24=H.at<float>(1,3), h25=H.at<float>(1,4), h26=H.at<float>(1,5),
-                h31=H.at<float>(2,0), h32=H.at<float>(2,1), h33=H.at<float>(2,2);
+        double u_tst = imagePoints_norm[i].x;
+        double v_tst = imagePoints_norm[i].y;  //注：这里的u_tst和v_tst都是normalized形式
+        double h11=H.at<double>(0,0), h12=H.at<double>(0,1), h13=H.at<double>(0,2),
+                h21=H.at<double>(1,0), h22=H.at<double>(1,1), h23=H.at<double>(1,2),
+                h24=H.at<double>(1,3), h25=H.at<double>(1,4), h26=H.at<double>(1,5),
+                h31=H.at<double>(2,0), h32=H.at<double>(2,1), h33=H.at<double>(2,2);
 
-        float m1 = h21 - v_tst*h31, m2 = h22 - v_tst*h32, m3 = h24, m4 = h25, m5 = h26, m6 = h23 - v_tst*h33,
+        double m1 = h21 - v_tst*h31, m2 = h22 - v_tst*h32, m3 = h24, m4 = h25, m5 = h26, m6 = h23 - v_tst*h33,
                 m7 = h11 - u_tst*h31, m8 = h12 - u_tst*h32, m9 = h13 - u_tst*h33;
 
-        float k1 = m3*m8*m8 + m4*m7*m7 - m5*m7*m8,
+        double k1 = m3*m8*m8 + m4*m7*m7 - m5*m7*m8,
                 k2 = m1*m8*m8 - m2*m7*m8 + 2*m4*m7*m9 - m5*m8*m9,
                 k3 = m4*m9*m9 + m6*m8*m8 - m2*m8*m9;
 
-        float a_norm = ( (-1)*k2 - pow(k2*k2-4*k1*k3,0.5) )/(2*k1);
-        float b_norm = (-1)*(m9+m7*a_norm)/m8;
+        double a_norm = ( (-1)*k2 - pow(k2*k2-4*k1*k3,0.5) )/(2*k1);
+        double b_norm = (-1)*(m9+m7*a_norm)/m8;
         out4<< a_norm<<", "<<b_norm<<endl;
     }
     out3.close();
@@ -673,37 +726,37 @@ Mat Drareni_computeHomography(const vector<Point2f>& worldPoints, const vector<P
  *      v: 待求点在图像平面上的y坐标；
  *      H: 从世界平面到图像平面的转化矩阵（3X6）（输入参数）；
  *      T_img: 图像平面坐标系中的点的normalize矩阵：xi' = T1·xi（输入参数）;
- *      T_wrld: 世界平面坐标系中的点的normalize矩阵：yi' = T2·yi（输入参数）；
+ *      T_wrld: 世界平面坐标系中的点的normalize矩阵：ai' = T2·ai（输入参数）；
  * return:
  *     该点在世界平面(世界坐标系中z=0的平面)上的坐标。
  * */
-Point2f Drareni_computWorldCoord(float u, float v, const Mat& H, const Mat& T_img, const Mat& T_wrld)
+Point2f Drareni_computWorldCoord(double u, double v, const Mat& H, const Mat& T_img, const Mat& T_wrld)
 {
     //1. 求解( a_norm, b_norm )
-    Mat src_pt_norm = T_img*( Mat_<float>(3,1)<< u, v, 1.0);  //对图像坐标进行normalization
+    Mat src_pt_norm = T_img*( Mat_<double>(3,1)<< u, v, 1.0);  //对图像坐标进行normalization
 
     //1.1 用T1矩阵对(u,v)做normalizetion
-    float u_norm = src_pt_norm.at<float>(0,0)/src_pt_norm.at<float>(2,0) ;
-    float v_norm = src_pt_norm.at<float>(1,0)/src_pt_norm.at<float>(2,0) ;
-    float h11=H.at<float>(0,0), h12=H.at<float>(0,1), h13=H.at<float>(0,2),
-          h21=H.at<float>(1,0), h22=H.at<float>(1,1), h23=H.at<float>(1,2),
-          h24=H.at<float>(1,3), h25=H.at<float>(1,4), h26=H.at<float>(1,5),
-          h31=H.at<float>(2,0), h32=H.at<float>(2,1), h33=H.at<float>(2,2);
+    double u_norm = src_pt_norm.at<double>(0,0)/src_pt_norm.at<double>(2,0) ;
+    double v_norm = src_pt_norm.at<double>(1,0)/src_pt_norm.at<double>(2,0) ;
+    double h11=H.at<double>(0,0), h12=H.at<double>(0,1), h13=H.at<double>(0,2),
+          h21=H.at<double>(1,0), h22=H.at<double>(1,1), h23=H.at<double>(1,2),
+          h24=H.at<double>(1,3), h25=H.at<double>(1,4), h26=H.at<double>(1,5),
+          h31=H.at<double>(2,0), h32=H.at<double>(2,1), h33=H.at<double>(2,2);
 
 
     //1.2 （法一：代入公式求解）构建一元二次方程组并解
-    float m1 = h21 - v_norm*h31, m2 = h22 - v_norm*h32, m3 = h24, m4 = h25, m5 = h26, m6 = h23 - v_norm*h33,
+    double m1 = h21 - v_norm*h31, m2 = h22 - v_norm*h32, m3 = h24, m4 = h25, m5 = h26, m6 = h23 - v_norm*h33,
           m7 = h11 - u_norm*h31, m8 = h12 - u_norm*h32, m9 = h13 - u_norm*h33;
-    float k1 = m3*m8*m8 + m4*m7*m7 - m5*m7*m8,
+    double k1 = m3*m8*m8 + m4*m7*m7 - m5*m7*m8,
           k2 = m1*m8*m8 - m2*m7*m8 + 2*m4*m7*m9 - m5*m8*m9,
           k3 = m4*m9*m9 + m6*m8*m8 - m2*m8*m9;
     // 接下来解：k1*a^2 + k2*a + k3 = 0
-    float a_norm = ( (-1)*k2 - pow(k2*k2-4*k1*k3,0.5) )/(2*k1);
-    float b_norm = (-1)*(m9+m7*a_norm)/m8;
+    double a_norm = ( (-1)*k2 - pow(k2*k2-4*k1*k3,0.5) )/(2*k1);
+    double b_norm = (-1)*(m9+m7*a_norm)/m8;
 
 //     1.2 （法二：求解缺定齐次线性方程。。。我觉得这么做有问题。。。于是就给它注释掉了。。。）
 //     //即M·H·x=0，其中，M、H已知，求x。其中x的形式是x=(a, b, 1, a^2, b^2, a*b).T
-//     Mat M = ( (Mat_<float>(3,3) << 0.0, -1.0, v, 1.0, 0.0, (-1)*u, (-1)*v, u, 0.0 ) );
+//     Mat M = ( (Mat_<double>(3,3) << 0.0, -1.0, v, 1.0, 0.0, (-1)*u, (-1)*v, u, 0.0 ) );
 //     Mat MH = M*H;  //shape: 3X6
 //     Mat x;
 //     SVD::solveZ(MH, x);  //求出under-determined（缺定？）方程组的最优解(shape: 6X1)
@@ -711,21 +764,21 @@ Point2f Drareni_computWorldCoord(float u, float v, const Mat& H, const Mat& T_im
 //    //对x3进行归一化（放缩x令x3=1）
 //     cout<<"x (对x3归一化之前):"<<endl<<x<<endl;
 //     cout<<"MH·x(对x3归一化之前)"<<endl<<MH*x<<endl;
-//     x = (1.0/x.at<float>(2,0))*x;
+//     x = (1.0/x.at<double>(2,0))*x;
 //     cout<<"x (对x3归一化之后):"<<endl<<x<<endl;
 //     cout<<"MH·x(对x3归一化之后)"<<endl<<MH*x<<endl;
 //
-//     double a = ( x.at<float>(0,0) + ( x.at<float>(3,0)/x.at<float>(0,0) )
-//            + ( pow(x.at<float>(3,0),0.5) ) + ( x.at<float>(5,0)/x.at<float>(1,0) ) )/4;
+//     double a = ( x.at<double>(0,0) + ( x.at<double>(3,0)/x.at<double>(0,0) )
+//            + ( pow(x.at<double>(3,0),0.5) ) + ( x.at<double>(5,0)/x.at<double>(1,0) ) )/4;
 //
-//     double b = ( x.at<float>(1,0) + ( x.at<float>(4,0)/x.at<float>(1,0) )
-//                + ( pow(x.at<float>(4,0),0.5) ) + ( x.at<float>(5,0)/x.at<float>(0,0) ) )/4;
+//     double b = ( x.at<double>(1,0) + ( x.at<double>(4,0)/x.at<double>(1,0) )
+//                + ( pow(x.at<double>(4,0),0.5) ) + ( x.at<double>(5,0)/x.at<double>(0,0) ) )/4;
 
     //2. 用T2对求得的 (a_norm, b_norm) 做Denormalization
-    Mat trgt_pt_norm = ( Mat_<float>(3,1)<<a_norm, b_norm, 1.0 );
+    Mat trgt_pt_norm = ( Mat_<double>(3,1)<<a_norm, b_norm, 1.0 );
     Mat trgt_pt = T_wrld.inv()*trgt_pt_norm;
-    float a = ( trgt_pt.at<float>(0,0)/trgt_pt.at<float>(0,2) );
-    float b = ( trgt_pt.at<float>(1,0)/trgt_pt.at<float>(0,2) );
+    double a = ( trgt_pt.at<double>(0,0)/trgt_pt.at<double>(0,2) );
+    double b = ( trgt_pt.at<double>(1,0)/trgt_pt.at<double>(0,2) );
 
     Point2f p = Point2f(a, b);
     return p;
@@ -733,20 +786,90 @@ Point2f Drareni_computWorldCoord(float u, float v, const Mat& H, const Mat& T_im
 
 
 /*
- * func: 这个函数用于test3.4，即在 标准棋盘格图像 上绘制圆圈来模拟在 世界平面 上绘制圆圈。世界平面是以第一个角点为原点建立坐标系的，
+ * func: 这个函数用于test3.4，即在 标准棋盘格图像 上绘制圆圈来模拟在 世界平面 上绘制圆圈。世界平面坐标系是以第一个角点为原点建立的，
  *       而标准棋盘格图像平面则是以左上角为原点建立坐标系的。该函数将 世界平面坐标系的坐标 转化为 标准棋盘格图像平面坐标系 的坐标。
  *       转换之后即可在 标准棋盘格图像平面 上绘制计算出测试点的世界坐标，以及测试点的标准世界坐标 进行对比；
  * args:
- *       imgCoord: 待转换的世界平面坐标系坐标；
+ *       wrldCoord: 待转换的 世界平面坐标系 的坐标；
  *       actual_grid_size: 一个棋盘格在世界平面上的真实尺寸：宽x高（单位：mm）；
  *       img_grid_size: 一个棋盘格在标准棋盘格图像平面上的尺寸：宽x高（单位：pixel）;
  * return:
  *       转换后的在标准棋盘格图像平面上的坐标。
  * */
-Point2f worldCoord_to_stdImageCoord(const Point2f& imgCoord, const Size& actual_grid_size, const Size& img_grid_size)
+Point2f worldCoord_to_stdImageCoord(const Point2f& wrldCoord, const Size& actual_grid_size, const Size& img_grid_size)
 {
-    float x = (imgCoord.x/actual_grid_size.width)*img_grid_size.width + img_grid_size.width;
-    float y = (imgCoord.y/actual_grid_size.height)*img_grid_size.height + img_grid_size.height;
+    double x = (wrldCoord.x/actual_grid_size.width)*img_grid_size.width + img_grid_size.width;
+    double y = (wrldCoord.y/actual_grid_size.height)*img_grid_size.height + img_grid_size.height;
     Point2f p = Point2f (x, y);
     return p;
+}
+
+
+/*
+ * func: (改变手性，即xOy->yOx)给定若干个点的坐标(2D空间)，将它们映射到新坐标系（新坐标系就是原坐标系x轴和y轴对调一下）
+ * args:
+ *     srcPts: 这些点在手性转换之前的原坐标系下的坐标；
+ * return:
+ *     这些点在手性转换之后的新坐标系下的坐标；
+ * */
+vector<Point2f> chirality_transformation(const vector<Point2f>& srcPts)
+{
+    int ptsNum = srcPts.size();
+    vector<Point2f> trgtPts;
+    trgtPts.reserve(ptsNum);
+
+    for(int i=0; i<ptsNum; i++)
+    {
+        Point2f pt = Point2f(srcPts[i].y, srcPts[i].x);
+        trgtPts.emplace_back(pt);
+    }
+
+    return trgtPts;
+}
+
+
+/*
+ * func:( 图像平面坐标系->机器人（平面）坐标系 )给出一组点在 图像平面坐标系 的坐标，和4个需要用到的转换矩阵，
+ *      得到这一组点在 机器人(平面)坐标系 的坐标；
+ * args:
+ *      imgCoords：待转换的这一组点在 图像平面坐标系 的坐标；
+ *      H：从 升维世界坐标系(normalized坐标) 到 图像坐标系(normalizaed坐标) 的转化矩阵（3X6）；
+ *      T_img：图像平面坐标系中的点的normalize矩阵：xi' = T1·xi（3X3）;
+ *      T_wrld：世界平面坐标系中的点的normalize矩阵：ai' = T2·ai（3X3）;
+ *      H_v：从 世界(平面)坐标系 到 机器人(平面)坐标系 的转化矩阵（3X3）;
+ *      worldCoords：用来存储这一组点在 世界平面坐标系 的坐标（输出参数）;
+ * return:
+ *      这一组点转换到 机器人（平面）坐标系 中的坐标。只有x和y坐标，而且其x和y坐标和4轴机器人的X、Y方向保持一致。
+ * */
+vector<Point2f> imageToRobot(const vector<Point2f>& imgCoords, const Mat& H, const Mat& T_img, const Mat& T_wrld, const Mat& H_v,
+                            vector<Point2f>& worldCoords)
+{
+    int ptsNum = imgCoords.size();  //待转换点的个数
+//    vector<Point2f> worldCoords;  //用来储存 世界平面坐标系 的坐标
+    worldCoords.reserve(ptsNum);
+
+    //step1.先得将这些点在 图像平面坐标系 中的坐标转换成在 世界平面坐标系 中的坐标。调用函数Drareni_computWorldCoord()
+    cout<<endl<<"待抓的几个物体在 世界平面坐标系 中的坐标："<<endl;
+    for(int i=0; i<ptsNum; i++)
+    {
+        Point2f pt_img = imgCoords[i];
+        Point2f pt_wrld = Drareni_computWorldCoord(pt_img.x, pt_img.y, H, T_img, T_wrld);  //先转换到世界平面坐标系中
+        cout<<"object "+to_string(i+1)+"(计算出的)在 世界平面坐标系 中的坐标："<<pt_wrld<<endl;
+        worldCoords.emplace_back(pt_wrld);
+    }
+    //worldCoords填充完毕
+
+    //step2.将 世界坐标系 转换到 过渡世界坐标系，调用函数chirality_transformation()
+    vector<Point2f> interimWorldCoords;  ////用来储存 过渡世界平面坐标系 的坐标
+    interimWorldCoords = chirality_transformation(worldCoords);
+    cout<<"待抓的几个物体在 过渡世界平面坐标系 中的坐标："<<endl;
+    for(int i=0; i<ptsNum; i++)
+        cout<<"object "+to_string(i+1)+"(计算出的)在 过渡世界平面坐标系 中的坐标："<<interimWorldCoords[i]<<endl;
+
+    //step3.将这些点在 过渡世界平面坐标系 中的坐标转换成在 机器人(平面)坐标系 中的坐标。调用函数transform_homography()
+    vector<Point2f> robotCoords = transform_homography(interimWorldCoords, H_v);
+
+    //暂时改为返回 过渡世界坐标系 的坐标
+    return robotCoords;
+
 }

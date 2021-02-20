@@ -4,7 +4,7 @@ test image（假设这幅图是线扫相机拍的）：
 
 test points:
 
-        coord in image plane（pixel）      coord in world plane（mm）
-测试点1:       (431, 374)                        (35, 21.5)
-测试点2:       (562, 442)                        (71, 42)
-测试点3:       (656, 759)                        (99.5, 126.5)
+           coord in image plane（pixel）      coord in world plane（mm）
+testPoint1:       (431, 374)                        (35, 21.5)
+testPoint2:       (562, 442)                        (71, 42)
+testPoint3:       (656, 759)                        (99.5, 126.5)

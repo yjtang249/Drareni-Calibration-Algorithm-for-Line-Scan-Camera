@@ -17,7 +17,7 @@ using namespace cv;
 
 /**
  * ./calibration.h:
- *      该文件是一些标定时使用的工具函数的声明，这些函数的实现在 ./calibration.cpp 中。
+ *      该文件是一些标定时使用的函数的声明，这些函数的实现在 ./calibration.cpp 中。
  */
 
 //declaration of funcs
@@ -25,8 +25,14 @@ using namespace cv;
 //(Tool function)分割字符串
 vector<string> string_split(const string& str, const string& delim);
 
+//(Tool function)传入一个文件的路径（绝对路径或相对路径），提取出该文件的文件名（即路径中的最后一部分）
+string extract_fileName_from_path(const string& filePath);
+
+//(Tool function) 给定若干个2D点，和一个3X3的单转换矩阵，返回这组2D点转换后的点坐标
+vector<Point2f> transform_homography(const vector<Point2f>& srcPts, const Mat& H);
+
 //角点检测(包括亚像素精确化)
-void cornerPointsDetect(vector<string>& imgNameList, const Size& board_size, vector<vector<Point2f>>& cornerPoints_seq, int draw, int save);
+void cornerPointsDetect(vector<string>& imgNameList, const Size& board_size, vector<vector<Point2f>>& cornerPoints_seq, int draw, int save, int imgSave);
 
 //计算3D场景点到每个view的（平均）重投影误差（用于评价标定结果）
 double cal_reproj_err(const vector<vector<Point3f>>& objPoints_seq, const vector<vector<Point2f>>& cornerPoints_seq,
@@ -61,7 +67,8 @@ double symmetricTransfer_error(vector<Point2f>& src_points, vector<Point2f>& trg
                                vector<Point2f>& src_points_proj, vector<Point2f>& trgt_points_proj);
 
 //在图像上绘制目标点：给定一张图片和一组点坐标，在该图片上用圆圈绘制这些点，并显示(按esc键退出)
-void drawCircleOnImage(const string& imgName, const vector<Point2f>& points, const Scalar& color, const string& windowName);
+void drawCircleOnImage(const string& imgName, const vector<Point2f>& points, const Scalar& color, const string& windowName,
+                       int radius, int thickness);
 
 //给定两个点(2个坐标)，求出它们之间的欧式距离
 double euclid_distanc(const Point2f& p1, const Point2f& p2);
@@ -73,7 +80,14 @@ void normalize_for_DLT(const vector<Point2f>& src_pts, vector<Point2f>& trgt_pts
 Mat Drareni_computeHomography(const vector<Point2f>& worldPoints, const vector<Point2f>& imagePoints, Mat& T1, Mat& T2 );
 
 //（ Drareni ）用Drarenei标定方法，给出 某点在图像平面上的坐标 和 求出的转换H矩阵(3X6)，返回该点在世界平面(世界坐标系中z=0的平面)上的坐标
-Point2f Drareni_computWorldCoord(float u, float v, const Mat& H, const Mat& T1, const Mat& T2);
+Point2f Drareni_computWorldCoord(double u, double v, const Mat& H, const Mat& T1, const Mat& T2);
 
 //这个函数用于test3.4，作用是将 标准棋盘格图像平面坐标系 上的坐标转换为在 世界平面坐标系 上的坐标。
-Point2f worldCoord_to_stdImageCoord(const Point2f& imgCoord, const Size& actual_grid_size, const Size& img_grid_size);
+Point2f worldCoord_to_stdImageCoord(const Point2f& wrldCoord, const Size& actual_grid_size, const Size& img_grid_size);
+
+//(Tool function)坐标系(2D)手性转换。说得通俗点就是把原来的点x和y坐标互换
+vector<Point2f> chirality_transformation(const vector<Point2f>& srcPts);
+
+//（图像平面坐标系->机器人(平面)坐标系）给出一组点在 图像平面坐标系 的坐标，和4个需要用到的转换矩阵，得到这一组点在 机器人(平面)坐标系 的坐标；
+vector<Point2f> imageToRobot(const vector<Point2f>& imgCoords, const Mat& H, const Mat& T_img, const Mat& T_wrld, const Mat& H_v,
+                                   vector<Point2f>& worldCoords);

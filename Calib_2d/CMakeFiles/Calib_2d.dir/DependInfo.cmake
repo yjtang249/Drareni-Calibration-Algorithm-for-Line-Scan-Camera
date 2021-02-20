@@ -4,8 +4,8 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/Users/javenst/Documents/NUDT/Calib_2d/calibration.cpp" "/Users/javenst/Documents/NUDT/Calib_2d/CMakeFiles/Calib_2d.dir/calibration.cpp.o"
-  "/Users/javenst/Documents/NUDT/Calib_2d/main.cpp" "/Users/javenst/Documents/NUDT/Calib_2d/CMakeFiles/Calib_2d.dir/main.cpp.o"
+  "/Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/calibration.cpp" "/Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/CMakeFiles/Calib_2d.dir/calibration.cpp.o"
+  "/Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/main.cpp" "/Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/CMakeFiles/Calib_2d.dir/main.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "AppleClang")
 

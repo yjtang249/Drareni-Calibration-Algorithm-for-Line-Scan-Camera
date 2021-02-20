@@ -6,13 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/Users/javenst/Documents/NUDT/Calib_2d/calibration.cpp
-calibration.h
-/Users/javenst/Documents/NUDT/Calib_2d/calibration.h
-math.h
--
-
-/Users/javenst/Documents/NUDT/Calib_2d/calibration.h
+/Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/calibration.h
 iostream
 -
 opencv2/opencv.hpp
@@ -32,7 +26,7 @@ vector
 string
 -
 
-/Users/javenst/Documents/NUDT/Calib_2d/main.cpp
+/Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/main.cpp
 iostream
 -
 fstream
@@ -50,7 +44,7 @@ vector
 regex
 -
 calibration.h
-/Users/javenst/Documents/NUDT/Calib_2d/calibration.h
+/Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/calibration.h
 
 /usr/local/Cellar/opencv/4.3.0/include/opencv4/opencv2/aruco.hpp
 opencv2/core.hpp

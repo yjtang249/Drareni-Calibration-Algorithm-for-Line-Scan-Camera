@@ -43,10 +43,10 @@ RM = /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/javenst/Documents/NUDT/Calib_2d
+CMAKE_SOURCE_DIR = /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/javenst/Documents/NUDT/Calib_2d
+CMAKE_BINARY_DIR = /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d
 
 # Include any dependencies generated for this target.
 include CMakeFiles/Calib_2d.dir/depend.make
@@ -59,29 +59,29 @@ include CMakeFiles/Calib_2d.dir/flags.make
 
 CMakeFiles/Calib_2d.dir/main.cpp.o: CMakeFiles/Calib_2d.dir/flags.make
 CMakeFiles/Calib_2d.dir/main.cpp.o: main.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/javenst/Documents/NUDT/Calib_2d/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Calib_2d.dir/main.cpp.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Calib_2d.dir/main.cpp.o -c /Users/javenst/Documents/NUDT/Calib_2d/main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Calib_2d.dir/main.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Calib_2d.dir/main.cpp.o -c /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/main.cpp
 
 CMakeFiles/Calib_2d.dir/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Calib_2d.dir/main.cpp.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/javenst/Documents/NUDT/Calib_2d/main.cpp > CMakeFiles/Calib_2d.dir/main.cpp.i
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/main.cpp > CMakeFiles/Calib_2d.dir/main.cpp.i
 
 CMakeFiles/Calib_2d.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Calib_2d.dir/main.cpp.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/javenst/Documents/NUDT/Calib_2d/main.cpp -o CMakeFiles/Calib_2d.dir/main.cpp.s
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/main.cpp -o CMakeFiles/Calib_2d.dir/main.cpp.s
 
 CMakeFiles/Calib_2d.dir/calibration.cpp.o: CMakeFiles/Calib_2d.dir/flags.make
 CMakeFiles/Calib_2d.dir/calibration.cpp.o: calibration.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/javenst/Documents/NUDT/Calib_2d/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/Calib_2d.dir/calibration.cpp.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Calib_2d.dir/calibration.cpp.o -c /Users/javenst/Documents/NUDT/Calib_2d/calibration.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/Calib_2d.dir/calibration.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Calib_2d.dir/calibration.cpp.o -c /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/calibration.cpp
 
 CMakeFiles/Calib_2d.dir/calibration.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Calib_2d.dir/calibration.cpp.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/javenst/Documents/NUDT/Calib_2d/calibration.cpp > CMakeFiles/Calib_2d.dir/calibration.cpp.i
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/calibration.cpp > CMakeFiles/Calib_2d.dir/calibration.cpp.i
 
 CMakeFiles/Calib_2d.dir/calibration.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Calib_2d.dir/calibration.cpp.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/javenst/Documents/NUDT/Calib_2d/calibration.cpp -o CMakeFiles/Calib_2d.dir/calibration.cpp.s
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/calibration.cpp -o CMakeFiles/Calib_2d.dir/calibration.cpp.s
 
 # Object files for target Calib_2d
 Calib_2d_OBJECTS = \
@@ -147,7 +147,7 @@ Calib_2d: /usr/local/lib/libopencv_photo.4.3.0.dylib
 Calib_2d: /usr/local/lib/libopencv_imgproc.4.3.0.dylib
 Calib_2d: /usr/local/lib/libopencv_core.4.3.0.dylib
 Calib_2d: CMakeFiles/Calib_2d.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/javenst/Documents/NUDT/Calib_2d/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable Calib_2d"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable Calib_2d"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Calib_2d.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -160,6 +160,6 @@ CMakeFiles/Calib_2d.dir/clean:
 .PHONY : CMakeFiles/Calib_2d.dir/clean
 
 CMakeFiles/Calib_2d.dir/depend:
-	cd /Users/javenst/Documents/NUDT/Calib_2d && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/javenst/Documents/NUDT/Calib_2d /Users/javenst/Documents/NUDT/Calib_2d /Users/javenst/Documents/NUDT/Calib_2d /Users/javenst/Documents/NUDT/Calib_2d /Users/javenst/Documents/NUDT/Calib_2d/CMakeFiles/Calib_2d.dir/DependInfo.cmake --color=$(COLOR)
+	cd /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/CMakeFiles/Calib_2d.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/Calib_2d.dir/depend
 

@@ -1,4 +1,4 @@
-# Install script for directory: /Users/javenst/Documents/NUDT/Calib_2d
+# Install script for directory: /Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -40,5 +40,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/javenst/Documents/NUDT/Calib_2d/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/Users/javenst/Documents/NUDT/Drareni-Calibration-Algorithm-for-Line-Scan-Camera/Calib_2d/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

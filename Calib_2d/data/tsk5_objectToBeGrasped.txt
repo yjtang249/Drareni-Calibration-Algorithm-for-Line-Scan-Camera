@@ -1,0 +1,8 @@
+used image: lineScanImage.png(4096 X 9700 pixel)
+
+               coord on image plane（pixel）           coord on robot plane
+pill bottle:          (3108.0,6000.0)                   (252.8,1297.7)
+laser pen:            (3159.0,4707.0)                   (-317.1,1334.1)
+electric fan:         (1026.0,3819.0)                   (-696.1,450.4)
+book:                 (2994.0,2992.0)                   (-1049.5,1244.5)
+lid:                  (1922.0,2248.0)                   (-1361.2,815.5)
